@@ -1,7 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
-import fetch from "node-fetch"; // ✅ Fix: Ensure fetch works in Node.js
 import APIKEY from "./config.js"; // Import API key from config.js
 
 dotenv.config(); // Load environment variables (if needed)
@@ -12,39 +11,26 @@ const API_KEY = APIKEY; // Assign API key from config.js
 
 console.log("API Key:", API_KEY);
 
+// app.use(cors());
 app.use(
   cors({
-    origin: ["https://d-weather-app.vercel.app/", "http://127.0.0.1:5500"],
+    origin: ["https://d-weather-app.vercel.app", "http://127.0.0.1:5500"],
     // origin: "http://127.0.0.1:5500",
     methods: "GET",
     allowedHeaders: ["Content-Type"], // ✅ Fix: Ensure proper CORS headers
   })
 );
 
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*"); // Allow all domains
-  res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  next();
-});
-
-app.options("*", (req, res) => {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  res.sendStatus(204); // No content response
-});
-
-
-// ✅ Root `/` Route for Testing
+// ✅ New Root `/` Route for Testing
 app.get("/", (req, res) => {
-  res.send("Weather API is running!"); 
+  res.send("Weather API is running!"); // Friendly message
 });
 
-// ✅ `/weather` Route
+// ✅ Fixed `/weather` Route
 app.get("/weather", async (req, res) => {
   const { city, endPoint, lon, lat } = req.query;
 
+  // 🔹 Allow fetching by either city or coordinates
   if ((!city && (!lat || !lon)) || !endPoint) {
     return res.status(400).json({ error: "Missing required parameters" });
   }
@@ -57,13 +43,13 @@ app.get("/weather", async (req, res) => {
     url += `&q=${city}`;
   }
 
-  console.log("Fetching weather data from:", url); // ✅ Fix: Debugging log
-
   try {
     const response = await fetch(url);
 
     if (!response.ok) {
-      return res.status(response.status).json({ error: "Failed to fetch weather data" });
+      return res
+        .status(response.status)
+        .json({ error: "Failed to fetch weather data" });
     }
 
     const data = await response.json();
@@ -73,7 +59,7 @@ app.get("/weather", async (req, res) => {
   }
 });
 
-// ✅ `/forecast` Route
+// ✅ Fixed `/forecast` Route
 app.get("/forecast", async (req, res) => {
   const { lat, lon } = req.query;
 
@@ -87,7 +73,9 @@ app.get("/forecast", async (req, res) => {
     );
 
     if (!response.ok) {
-      return res.status(response.status).json({ error: "Failed to fetch weather data" });
+      return res
+        .status(response.status)
+        .json({ error: "Failed to fetch weather data" });
     }
 
     const data = await response.json();
@@ -97,10 +85,24 @@ app.get("/forecast", async (req, res) => {
   }
 });
 
-// ✅ Default 404 Error Handling
+// ✅ Default Error Handling
 app.use((req, res) => {
   res.status(404).send({ error: "Route not found!" });
 });
 
 // Start the server
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+
+// app.use((req, res, next) => {
+//   res.header("Access-Control-Allow-Origin", "*"); // Allow all domains
+//   res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+//   res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+//   next();
+// });
+
+// app.options("*", (req, res) => {
+//   res.header("Access-Control-Allow-Origin", "*");
+//   res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+//   res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+//   res.sendStatus(204); // No content response
+// });
