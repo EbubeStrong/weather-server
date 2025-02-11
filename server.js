@@ -14,7 +14,7 @@ console.log("API Key:", API_KEY);
 
 app.use(
   cors({
-    origin: "https://d-weather-app.vercel.app/",
+    origin: ["https://d-weather-app.vercel.app/", "http://127.0.0.1:5500"],
     // origin: "http://127.0.0.1:5500",
     methods: "GET",
     allowedHeaders: ["Content-Type"], // ✅ Fix: Ensure proper CORS headers
